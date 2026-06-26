@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.env
+
+# bronze raw data kept out of git (large; the object-store bucket is canonical once hosted)
+data/bronze/**
+!data/bronze/.gitkeep
+!data/bronze/README.md
+
+# silver/gold are per-agent and always regenerable
+**/silver/
+**/reports/
+**/output/
