@@ -1,0 +1,105 @@
+# Build prompts
+
+Paste-ready prompts for driving the race-agents build with Claude Code. They
+assume the `CLAUDE.md` contract is loaded, but each restates the load-bearing
+rules so it survives a fresh context window:
+
+- **Claude Code builds it** — write the code, run the tests, commit. Not an
+  apprenticeship exercise.
+- **Track decisions** — JOURNAL entry per session, ADR per structural/interface
+  change (this repo is blog raw material).
+- **`racebot` is canonical** for the stateless tier (see ADR 0002).
+
+The four phase prompts are **sequential** — run one phase at a time; each ends
+green (`make test`) and committed before the next.
+
+---
+
+## Phase 1 — build agent 01 from racebot
+
+```
+Build agents/01-stateless by porting racebot into it. racebot is the canonical
+source for this tier (~/dev/racebot, git tag v1-stateless-firstpass; see ADR 0002).
+
+- Lift its tools/, agent loop, eval, and tests; repoint the silver builder at
+  racedata.get_bronze_store() instead of reading local PDFs directly.
+- Keep agent 01 self-contained: its own pyproject, README, Dockerfile, Streamlit
+  app.py. Only shared import is racedata. Do not import from other agents.
+- Preserve the control/data plane split and numbers-from-code rule.
+- Build it directly — write the code, run `make test`, fix until green. Don't hand
+  it back as an exercise.
+- When done: append a JOURNAL.md entry (date, model, what was built, decisions,
+  what was hard), and write an ADR for any structural/interface choice. Commit on
+  a branch with the ADR number referenced.
+```
+
+## Phase 2 — agent 02 (multistep / LangGraph)
+
+```
+Build agents/02-multistep per docs/architecture/Repo_2_The_Multistep_Workflow.md.
+This is the orchestration + eval + fault-tolerance tier.
+
+- LangGraph state machine running bronze→silver→gold: retries on the bronze
+  fetch, parallel race processing, conditional routing, a human-in-the-loop
+  approval gate before the gold report, and a self-criticism node.
+- It regenerates its OWN silver through the pipeline (do not reuse agent 01's
+  silver — that difference is the architecture being shown).
+- Reuse racebot's statistical tools (bootstrap CI, permutation test, robust
+  estimators) as reference, but agent 02 owns its own copy.
+- Trace-level eval: an LLM-judge node validates each step's output before
+  proceeding.
+- Self-contained (own deps/README/Dockerfile); only shared import is racedata.
+- Build directly, test, then JOURNAL entry + ADR(s) for the orchestration and
+  eval choices. Commit on a branch.
+```
+
+## Phase 3 — agent 03 (memory-first / pgvector)
+
+```
+Build agents/03-learning per docs/architecture/Repo_3_The_Agent_that_Learns.md.
+This is the memory-first tier: a personalised club analyst across 2024–2026.
+
+- Three memory tiers: in-context state blocks, pgvector retrieval, cross-session
+  persistence. update_memory + search_historical_context tools.
+- Proactive: on a returning user, recall their club/preferences and surface
+  trends without being re-asked.
+- Layers memory ON TOP of its own silver; pgvector via docker-compose in the
+  agent dir. Self-contained; only shared import is racedata.
+- Build directly, test, JOURNAL entry + ADR for the memory architecture and the
+  context-pollution strategy. Commit on a branch.
+```
+
+## Phase 4 — agent 04 (multi-agent)
+
+```
+Build agents/04-multi-agent per docs/architecture/Repo_3_The_Multi_Agent_System.md
+(this file is mislabelled — it is Repo 4). Full-stack tier: autonomously generate
+the multi-page Cork 2026 report.
+
+- Four specialists: Controller/Editor, Data Engineer (owns bronze→silver +
+  emits a YAML data dictionary), Statistician (robust estimators, bootstrap CI,
+  permutation tests), Visualizer (sandboxed charting).
+- Controller decouples planning from execution and delegates in parallel.
+- Trace-level eval on every handoff (LLM judge between agents); guardrails
+  enforced per-agent at the tool layer.
+- This agent's Data Engineer is what produces silver here. Self-contained; only
+  shared import is racedata.
+- Build directly, test, JOURNAL entry + ADRs for the coordination protocol and
+  handoff-eval design. Commit on a branch.
+```
+
+---
+
+## Reusable — start and end of every session
+
+```
+Session start: read CLAUDE.md and the latest JOURNAL.md entry, summarise where we
+are, and tell me the next buildable step before writing code.
+```
+
+```
+Session end: append a JOURNAL.md entry (date, Claude model, what was built,
+decisions made, what was hard), add/update any ADRs for decisions made this
+session, and stage a branch commit that references them. This repo is blog raw
+material — don't skip the trail.
+```
