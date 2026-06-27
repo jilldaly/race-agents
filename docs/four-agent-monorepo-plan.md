@@ -12,8 +12,8 @@ your architecture docs and the infographic personas:
 | 04 | `multi-agent` | The Race Director's Report Synthesizer | Multi-agent system — the full stack |
 
 Decisions locked in for this plan: **one monorepo**, a **shared `racedata`
-package with a pluggable bronze store**, and **`racebot` refactored into agent
-01** (archived afterward as a reference).
+package with a pluggable bronze store**, and **`racebot` as the canonical source
+of truth for the stateless tier**, ported into agent 01 (see ADR 0002).
 
 ## The one rule that shapes everything
 

@@ -34,11 +34,16 @@ Bronze is append-only and immutable — producers `put()`, agents only read. The
 future scraper is just another producer behind the same interface.
 
 ## Status (Phase 0 — scaffold)
-`racedata` package built and tested. Agent dirs are placeholders. Next: Phase 1
-ports the old `racebot` stateless agent into `agents/01-stateless` (lift its
-`tools/`, agent loop, eval, tests; repoint its silver builder at
-`racedata.get_bronze_store()`). The old code lives in git tag
-`v1-stateless-firstpass`.
+`racedata` package built and tested. Agent dirs are placeholders.
+
+**`racebot` is the canonical upstream for the stateless tier.** Agent 01 is built
+by porting `racebot` (`~/dev/racebot`, git tag `v1-stateless-firstpass`) into
+`agents/01-stateless`: lift its `tools/`, agent loop, eval, and tests, and
+repoint its silver builder at `racedata.get_bronze_store()`. When a stateless
+pattern is in question — control/data plane split, tool schemas, the statistical
+tools, the eval harness — `racebot` is the source of truth, not
+`race-report-agent`. Next: Phase 1 executes that port. See
+`docs/adr/0002-racebot-is-canonical-stateless-source.md`.
 
 ## Architecture rules that carry across all agents
 - **Control plane vs data plane**: the LLM only chooses which tool/node to call.
@@ -63,8 +68,20 @@ make test        # pytest across packages/ and agents/
 make lint        # ruff
 ```
 
-## Apprenticeship note
-Porting the old racebot code into agent 01 is a deliberate learning exercise —
-guide and review diffs rather than writing the whole implementation, unless asked
-to implement directly. Prompt for a JOURNAL.md entry after each session (blog raw
-material).
+## Build mode — Claude Code builds this
+Claude Code implements the agents directly and autonomously: write the code, run
+the tests, commit. Do **not** hand work back as an exercise or stop at guidance —
+that apprenticeship split belongs to the sibling `race-report-agent` repo, not
+here. Pause for input only when an architectural decision is genuinely ambiguous;
+otherwise build it.
+
+## Decision tracking — this repo is blog raw material
+The Substack write-up is about *how it was built*, so every architecture and code
+decision must leave a trail:
+- **`JOURNAL.md`** — append an entry at the end of every working session: date,
+  Claude model used, what was built, decisions made, what was hard. This is the
+  narrative spine of the blog; never skip it after a significant change.
+- **`docs/adr/`** — for any decision that changes structure, an interface, or a
+  dependency, add a numbered ADR (context → decision → consequences). Cite the
+  ADR number from the matching JOURNAL entry and the commit message.
+- If a choice can't be justified in one paragraph, it isn't ready to commit.
