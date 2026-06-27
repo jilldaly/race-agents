@@ -72,9 +72,8 @@ This is the memory-first tier: a personalised club analyst across 2024–2026.
 ## Phase 4 — agent 04 (multi-agent)
 
 ```
-Build agents/04-multi-agent per docs/architecture/Repo_3_The_Multi_Agent_System.md
-(this file is mislabelled — it is Repo 4). Full-stack tier: autonomously generate
-the multi-page Cork 2026 report.
+Build agents/04-multi-agent per docs/architecture/Repo_4_The_Multi_Agent_System.md.
+Full-stack tier: autonomously generate the multi-page Cork 2026 report.
 
 - Four specialists: Controller/Editor, Data Engineer (owns bronze→silver +
   emits a YAML data dictionary), Statistician (robust estimators, bootstrap CI,
