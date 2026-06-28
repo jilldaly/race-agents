@@ -4,33 +4,42 @@ Paste-ready prompts for driving the race-agents build with Claude Code. They
 assume the `CLAUDE.md` contract is loaded, but each restates the load-bearing
 rules so it survives a fresh context window:
 
-- **Claude Code builds it** — write the code, run the tests, commit. Not an
-  apprenticeship exercise.
+- **Claude Code builds it** — write the code, run the tests, commit. Not handed
+  back as an exercise.
 - **Track decisions** — JOURNAL entry per session, ADR per structural/interface
   change (this repo is blog raw material).
-- **`racebot` is canonical** for the stateless tier (see ADR 0002).
+- **The deterministic analysis is the golden source** — each agent is built fresh
+  for its tier and validated against its numbers (ADR 0002).
 
 The four phase prompts are **sequential** — run one phase at a time; each ends
 green (`make test`) and committed before the next.
 
 ---
 
-## Phase 1 — build agent 01 from racebot
+## Phase 1 — build agent 01 (stateless tool caller)
 
 ```
-Build agents/01-stateless by porting racebot into it. racebot is the canonical
-source for this tier (~/dev/racebot, git tag v1-stateless-firstpass; see ADR 0002).
+Build agents/01-stateless fresh from docs/architecture/Repo_1_The_Stateless_Tool_Caller.md
+and the per-tier ADRs. Don't port a prior implementation wholesale — this tier's
+architecture is the point.
 
-- Lift its tools/, agent loop, eval, and tests; repoint the silver builder at
-  racedata.get_bronze_store() instead of reading local PDFs directly.
-- Keep agent 01 self-contained: its own pyproject, README, Dockerfile, Streamlit
-  app.py. Only shared import is racedata. Do not import from other agents.
-- Preserve the control/data plane split and numbers-from-code rule.
-- Build it directly — write the code, run `make test`, fix until green. Don't hand
-  it back as an exercise.
-- When done: append a JOURNAL.md entry (date, model, what was built, decisions,
-  what was hard), and write an ADR for any structural/interface choice. Commit on
-  a branch with the ADR number referenced.
+- Single-turn, zero-memory Think-Act-Observe loop; OpenAI-compatible client
+  (Ollama default, Claude swappable via base_url).
+- Raw function-calling tools (compute_stat, get_club_stats, list_columns) with the
+  open, MCP-portable schema (ADR 0003). No MCP server at this tier.
+- Data plane: read-only static SQLite silver; all access behind one
+  backend/silver.py repository function, no hand-written SQL scattered through
+  tools (ADR 0004). Stats computed in Python ("numbers from code").
+- Build silver from bronze via racedata.get_bronze_store().
+- Guardrails: argument clamping, intent/scope classification, PII never reaches
+  the model context.
+- Golden eval (eval/golden.py): assert tool observations reproduce the
+  deterministic ancestor's numbers (cork-city-marathon-analysis); this lights up
+  the golden-eval CI gate.
+- Self-contained: own pyproject, README, Dockerfile, Streamlit single-turn app.py.
+  Only shared import is racedata; never import from other agents.
+- Build directly — write code, run `make test`, fix until green. Then a JOURNAL
+  entry + an ADR for any structural choice; open a small PR.
 ```
 
 ## Phase 2 — agent 02 (multistep / LangGraph)
@@ -44,8 +53,8 @@ This is the orchestration + eval + fault-tolerance tier.
   approval gate before the gold report, and a self-criticism node.
 - It regenerates its OWN silver through the pipeline (do not reuse agent 01's
   silver — that difference is the architecture being shown).
-- Reuse racebot's statistical tools (bootstrap CI, permutation test, robust
-  estimators) as reference, but agent 02 owns its own copy.
+- Implement robust statistical tools (bootstrap CI, permutation test, robust
+  estimators); agent 02 owns its own copy.
 - Trace-level eval: an LLM-judge node validates each step's output before
   proceeding.
 - Self-contained (own deps/README/Dockerfile); only shared import is racedata.

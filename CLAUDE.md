@@ -36,14 +36,11 @@ future scraper is just another producer behind the same interface.
 ## Status (Phase 0 — scaffold)
 `racedata` package built and tested. Agent dirs are placeholders.
 
-**`racebot` is the canonical upstream for the stateless tier.** Agent 01 is built
-by porting `racebot` (`~/dev/racebot`, git tag `v1-stateless-firstpass`) into
-`agents/01-stateless`: lift its `tools/`, agent loop, eval, and tests, and
-repoint its silver builder at `racedata.get_bronze_store()`. When a stateless
-pattern is in question — control/data plane split, tool schemas, the statistical
-tools, the eval harness — `racebot` is the source of truth, not
-`race-report-agent`. Next: Phase 1 executes that port. See
-`docs/adr/0002-racebot-is-canonical-stateless-source.md`.
+**Agent 01 is built fresh for its tier**, from the architecture spec
+(`docs/architecture/Repo_1_The_Stateless_Tool_Caller.md`) and the per-tier ADRs
+(0003 transport, 0004 data plane). It is validated against the **golden source** —
+the deterministic analysis (`cork-city-marathon-analysis`) — whose numbers anchor
+the golden eval (`docs/eval-strategy.md`, ADR 0002). Next: Phase 1 builds it.
 
 ## Architecture rules that carry across all agents
 - **Control plane vs data plane**: the LLM only chooses which tool/node to call.
@@ -70,9 +67,8 @@ make lint        # ruff
 
 ## Build mode — Claude Code builds this
 Claude Code implements the agents directly and autonomously: write the code, run
-the tests, commit. Do **not** hand work back as an exercise or stop at guidance —
-that apprenticeship split belongs to the sibling `race-report-agent` repo, not
-here. Pause for input only when an architectural decision is genuinely ambiguous;
+the tests, commit. Do **not** hand work back as an exercise or stop at guidance.
+Pause for input only when an architectural decision is genuinely ambiguous;
 otherwise build it.
 
 ## Decision tracking — this repo is blog raw material

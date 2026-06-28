@@ -13,8 +13,8 @@ Two layers are easy to conflate:
 
 - **Function-calling** — the provider API mechanism by which the model emits a
   structured tool call (name + JSON args). This is *how the model invokes a
-  tool*. racebot (our canonical 01) already uses it:
-  `client.chat.completions(..., tools=TOOL_SCHEMAS)` reading `msg.tool_calls`.
+  tool*: agent 01 uses it directly via the provider SDK
+  (`client.chat.completions(..., tools=...)` reading `msg.tool_calls`).
 - **MCP (Model Context Protocol)** — a client/server protocol for *hosting and
   discovering* tools (and resources/prompts) over a standard interface. This is
   *how tools are served and shared*. With MCP the model still uses
