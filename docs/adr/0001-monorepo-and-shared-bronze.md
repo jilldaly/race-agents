@@ -13,9 +13,10 @@ not duplicate raw-data handling.
    `BronzeStore` interface (`LocalStore` now, `ObjectStore` later). Silver/gold
    stay per-agent because how each agent builds them is the architecture being
    shown.
-3. The repo reuses the existing `jilldaly/racebot` remote; the first-pass
-   stateless code is preserved in git tag `v1-stateless-firstpass` and ported
-   into agent 01 rather than carried as working-tree legacy.
+3. Each agent is built fresh for its tier from the architecture specs
+   (`docs/architecture/`); none inherits a prior implementation wholesale. The
+   deterministic analysis is the golden source agents are validated against
+   (ADR 0002).
 
 **Consequences.** Hosting later is a config change (`BRONZE_BACKEND`,
 OpenAI-compatible `base_url`), not a rewrite. Each agent deploys independently.

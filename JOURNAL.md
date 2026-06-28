@@ -12,29 +12,28 @@ working session.
 **Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
 
 **Session summary:**
-Set the working contract for this repo before implementation starts. Reversed the
-apprenticeship model used in `race-report-agent`: here Claude Code builds the
-agents directly and autonomously rather than guiding from the sidelines. Made the
-blog the explicit reason for disciplined decision tracking, and named `racebot`
-as the single canonical upstream for the stateless tier.
+Set the working contract for this repo before implementation starts. Claude Code
+builds the agents directly and autonomously rather than guiding from the
+sidelines. Made the blog the explicit reason for disciplined decision tracking,
+and named the deterministic analysis as the golden source agents are validated
+against.
 
 **Key decisions:**
-- **Build mode = Claude Code builds it** (not apprenticeship). Pause only on
+- **Build mode = Claude Code builds it** (not guidance-only). Pause only on
   genuinely ambiguous architecture; otherwise write, test, commit. (CLAUDE.md
   "Build mode" section.)
 - **Decision tracking is mandatory** — JOURNAL entry per session + an ADR for any
   structural/interface/dependency change, cross-referenced from commits. The repo
   exists partly to be blogged about, so the trail is a deliverable, not overhead.
-- **`racebot` is canonical for the stateless tier** — agent 01 ports from
-  `racebot` (tag `v1-stateless-firstpass`), and `racebot` is the source of truth
-  over `race-report-agent` for any stateless pattern. (ADR 0002.)
+- **Golden source = the deterministic analysis** (`cork-city-marathon-analysis`) —
+  each agent is built fresh for its tier and validated against its numbers, rather
+  than inheriting a prior implementation. (ADR 0002.)
 
 **Files changed:**
-CLAUDE.md (Status + new "Build mode" and "Decision tracking" sections, replacing
-the apprenticeship note), docs/adr/0002-racebot-is-canonical-stateless-source.md
-(new), JOURNAL.md (new).
+CLAUDE.md (Status + new "Build mode" and "Decision tracking" sections),
+docs/adr/0002-golden-source-and-build-fresh.md (new), JOURNAL.md (new).
 
-**Next:** Phase 1 — port `racebot` into `agents/01-stateless`.
+**Next:** Phase 1 — build `agents/01-stateless`.
 
 ---
 
@@ -69,8 +68,9 @@ monitoring and blast-radius tiering are deferred. The live application of
 agentic code review is *reflexive* — the loop is "Claude builds, Jill reviews +
 merges," so the golden gate is how trust is earned without reading every diff.
 
-**The gold target:** confirmed `racebot/sample_report/cork_2026_report.pdf`
-(22 pp) is the example of the dynamic output — four sections (Overall 2026,
+**The gold target:** confirmed the deterministic ancestor's report
+(`analog_devices_cork_marathon_analysis.pdf`, 22 pp) is the example of the dynamic
+output — four sections (Overall 2026,
 Marathon Trend 2024–26, All Clubs Overall, All Clubs Trend), per-race stat
 tables, finish-time histograms, age/gender trends, box plots. Golden numbers
 (Marathon 2,102 / female median 4:18:24; 9,809 total) are lifted from it.
@@ -84,8 +84,8 @@ docs/eval-strategy.md (new),
 docs/architecture/Repo_1_The_Stateless_Tool_Caller.md (MCP wording),
 .github/workflows/ci.yml (golden gate), JOURNAL.md.
 
-**Next:** Phase 1 — port racebot into agents/01-stateless (its golden eval lights
-up the CI gate).
+**Next:** Phase 1 — build agents/01-stateless (its golden eval lights up the CI
+gate).
 
 ---
 
@@ -124,4 +124,34 @@ Postgres+pgvector at 03/04).* That consistency is the portfolio's argument.
 **Files changed:** docs/adr/0004-data-plane-per-tier.md (new),
 docs/four-agent-monorepo-plan.md (parquet → SQLite), JOURNAL.md.
 
-**Next:** Phase 1 — port racebot into agents/01-stateless.
+**Next:** Phase 1 — build agents/01-stateless.
+
+---
+
+## 2026-06-28 — Intent + source of truth; agents built fresh
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Connected the repo to its purpose and finalised the source-of-truth model. The
+four agents are four *users* with four needs (README "Why four agents"), built on
+the same data the deterministic analysis already covers.
+
+**Key decisions:**
+- **Golden source = the deterministic analysis** (`cork-city-marathon-analysis`).
+  ADR 0002 now states this; all sample-report references point to its published
+  report (`analog_devices_cork_marathon_analysis.pdf`).
+- **Agents are built fresh per tier**, validated against the golden numbers — the
+  Phase 1 instructions across CLAUDE.md, build-prompts, the plan, and agent 01's
+  README reflect this, and fold in ADRs 0003/0004 (function-calling, SQLite,
+  repository function).
+- **README "Why four agents"** (minimal): a deterministic-ancestor nod + a
+  user → need → tier table; infographic (made with NotebookLM) as the anchor.
+
+**Files changed (two PRs):** `docs/intent-and-lineage` — README.md,
+docs/eval-strategy.md. `docs/purge-racebot` — ADR 0002 (replaced with
+golden-source-and-build-fresh), ADR 0001/0003 reworded, CLAUDE.md,
+docs/build-prompts.md, docs/four-agent-monorepo-plan.md, agents/01-stateless/README.md,
+JOURNAL.md.
+
+**Next:** Phase 1 — build agents/01-stateless.

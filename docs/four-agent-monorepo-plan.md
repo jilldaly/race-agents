@@ -12,8 +12,9 @@ your architecture docs and the infographic personas:
 | 04 | `multi-agent` | The Race Director's Report Synthesizer | Multi-agent system — the full stack |
 
 Decisions locked in for this plan: **one monorepo**, a **shared `racedata`
-package with a pluggable bronze store**, and **`racebot` as the canonical source
-of truth for the stateless tier**, ported into agent 01 (see ADR 0002).
+package with a pluggable bronze store**, and **the deterministic analysis
+(`cork-city-marathon-analysis`) as the golden source of truth**, with each agent
+built fresh for its tier (see ADR 0002).
 
 ## The one rule that shapes everything
 
@@ -131,11 +132,11 @@ and infographic into `docs/`. Build `racedata` wrapping the current local PDFs;
 define `BronzeStore`, `LocalStore`, and the manifest. Write its tests. Nothing
 agent-facing yet, but bronze access is now abstracted.
 
-**Phase 1 — refactor `racebot` → `agents/01-stateless`.** Lift its working
-`tools/`, agent loop, silver builder, eval, and tests in. The one change: its
-silver builder now reads bronze via `racedata.get_bronze_store()` instead of a
-hardcoded path. Archive the old `racebot` repo (README pointer to its new home).
-This is your apprenticeship-friendly worked example for the porting pattern.
+**Phase 1 — build `agents/01-stateless`.** A single-turn, zero-memory tool caller
+(ADR 0003 function-calling, ADR 0004 SQLite). Tools query a read-only silver
+behind one `backend/silver.py` repository function; stats stay in Python. Silver
+is built from bronze via `racedata.get_bronze_store()`. Its golden eval asserts
+the numbers match the deterministic ancestor — lighting up the CI gate.
 
 **Phase 2 — `agents/02-multistep`.** New back end on LangGraph: bronze→silver→gold
 pipeline with retry loops, parallel race processing, robust stats (median/MAD,
