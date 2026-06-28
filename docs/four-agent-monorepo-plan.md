@@ -23,7 +23,7 @@ Dockerfile, own README**. The *only* thing they share is the **bronze layer**
 and gold (reports) are deliberately **not** shared — each agent builds its own,
 because *how* it does that is the architecture being demonstrated:
 
-- 01 reads a pre-built static silver parquet (read-only, zero pipeline).
+- 01 reads a pre-built static silver SQLite db (read-only, zero pipeline; see ADR 0004).
 - 02 regenerates silver through a LangGraph pipeline with retries + HITL.
 - 03 layers pgvector memory on top of silver.
 - 04 has a dedicated Data-Engineer sub-agent produce silver for the others.
@@ -115,8 +115,8 @@ source URL, fetched-at, checksum) so provenance survives the move to scraping.
 
 | | Front end | Back end / framework | LLM transport | State store | New deps vs 01 |
 |---|---|---|---|---|---|
-| **01 stateless** | Streamlit, single-turn | raw `openai` SDK + function tools, `while` loop | OpenAI-compatible (Ollama local) | static silver parquet | — |
-| **02 multistep** | Streamlit + approval gate | **LangGraph** state machine, retry/parallel nodes | same | silver regenerated per run; trace logs | langgraph |
+| **01 stateless** | Streamlit, single-turn | raw `openai` SDK + function tools, `while` loop | OpenAI-compatible (Ollama local) | static silver **SQLite** (ADR 0004) | — |
+| **02 multistep** | Streamlit + approval gate | **LangGraph** state machine, retry/parallel nodes | same | **SQLite** regenerated per run; trace logs | langgraph |
 | **03 learning** | dashboard | raw SDK + memory blocks + retrieval | same | **Postgres + pgvector** | pgvector, psycopg |
 | **04 multi-agent** | report UI / service | controller + 3 specialists, A2A handoffs | same | per-agent + shared blackboard | (orchestration) |
 
