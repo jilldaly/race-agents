@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import statistics
 
-from backend import silver
+from backend import charts, silver
 
 _METRICS = {"count", "median", "mean", "fastest", "slowest"}
 
@@ -60,6 +60,41 @@ def compute_stat(
     return {
         "race": race, "year": year, "metric": metric, "sex": sex,
         "age_group": age_group, "club": club, "n": len(times), "value": value,
+    }
+
+
+def compute_proportion(
+    race: str,
+    year: int,
+    sex: str | None = None,
+    age_group: str | None = None,
+    club: str | None = None,
+) -> dict:
+    """Share of a race/year's finishers matching the given filters, as a percentage.
+
+    The numerator is the finishers matching the filters; the denominator is *all*
+    finishers of that race and year. Answers "what % were female", "what % were in
+    age group X", etc. The percentage is computed here in Python ("numbers from
+    code"), so the model never divides.
+    """
+    meta = silver.query_meta()
+    if race not in meta["races"]:
+        return {"error": f"unknown race {race!r}; valid: {meta['races']}"}
+    if year not in meta["years"]:
+        return {"error": f"unknown year {year!r}; valid: {meta['years']}"}
+    if sex is not None and sex not in ("M", "F"):
+        return {"error": f"sex must be 'M' or 'F', got {sex!r}"}
+    if age_group is not None and age_group not in meta["age_groups"]:
+        return {"error": f"unknown age_group {age_group!r}; valid: {meta['age_groups']}"}
+
+    total = len(silver.query_times(race, year))
+    if not total:
+        return {"error": "no finishers for that race/year", "n": 0}
+    n = len(silver.query_times(race, year, sex=sex, age_group=age_group, club=club))
+    pct = round(100 * n / total, 1)
+    return {
+        "race": race, "year": year, "sex": sex, "age_group": age_group, "club": club,
+        "n": n, "total": total, "pct": pct, "value": f"{pct}%",
     }
 
 
@@ -122,6 +157,24 @@ TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
+            "name": "compute_proportion",
+            "description": "Compute what percentage (share) of a race/year's finishers match a filter — e.g. what % were female, or what % were in a given age group. The denominator is all finishers of that race and year. Use this for any 'what %' or 'what share' question.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "race": {"type": "string", "enum": ["full", "half", "10k"]},
+                    "year": {"type": "integer", "enum": [2024, 2025, 2026]},
+                    "sex": {"type": "string", "enum": ["M", "F"]},
+                    "age_group": {"type": "string"},
+                    "club": {"type": "string"},
+                },
+                "required": ["race", "year"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_club_stats",
             "description": "Finisher counts and fastest time for a running club (matched by substring), optionally for one race/year.",
             "parameters": {
@@ -138,6 +191,22 @@ TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
+            "name": "gender_chart",
+            "description": "Render a gender (male/female) story chart and return the numbers behind it. mode='snapshot' shows the gender split of finishers for a year (all races, or one race if given); mode='trend' shows how female participation % changed across 2024-2026 (all races combined, or one race if given). Use for questions about gender balance, female participation, or how it changed over time.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "mode": {"type": "string", "enum": ["snapshot", "trend"]},
+                    "year": {"type": "integer", "enum": [2024, 2025, 2026]},
+                    "race": {"type": "string", "enum": ["full", "half", "10k"]},
+                },
+                "required": ["mode"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "list_columns",
             "description": "List the schema and valid filter values (races, years, age groups) before querying.",
             "parameters": {"type": "object", "properties": {}},
@@ -147,6 +216,8 @@ TOOL_SCHEMAS = [
 
 _DISPATCH = {
     "compute_stat": compute_stat,
+    "compute_proportion": compute_proportion,
+    "gender_chart": charts.gender_chart,
     "get_club_stats": get_club_stats,
     "list_columns": list_columns,
 }

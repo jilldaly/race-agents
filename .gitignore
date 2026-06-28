@@ -8,6 +8,9 @@ __pycache__/
 # personal notes (kept local, not part of the project)
 GIT_SETUP.md
 
+# local-only build diary (private blog raw material; kept out of the repo)
+JOURNAL.md
+
 # bronze raw data is committed (4.3M — small enough to keep the repo + CI
 # self-contained so the golden eval can run); the object-store bucket remains the
 # canonical source once hosted. .DS_Store is ignored globally above.
@@ -16,3 +19,7 @@ GIT_SETUP.md
 **/silver/
 **/reports/
 **/output/
+deploy/hf-space/space/
+
+# sample report lives in the cork-city-marathon-analysis repo; not duplicated here
+sample_report/

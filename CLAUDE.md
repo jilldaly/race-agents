@@ -74,13 +74,11 @@ the tests, commit. Do **not** hand work back as an exercise or stop at guidance.
 Pause for input only when an architectural decision is genuinely ambiguous;
 otherwise build it.
 
-## Decision tracking — this repo is blog raw material
-The Substack write-up is about *how it was built*, so every architecture and code
-decision must leave a trail:
-- **`JOURNAL.md`** — append an entry at the end of every working session: date,
-  Claude model used, what was built, decisions made, what was hard. This is the
-  narrative spine of the blog; never skip it after a significant change.
-- **`docs/adr/`** — for any decision that changes structure, an interface, or a
-  dependency, add a numbered ADR (context → decision → consequences). Cite the
-  ADR number from the matching JOURNAL entry and the commit message.
+## Decision tracking
+- **`JOURNAL.md`** — a **local, gitignored** build diary, kept private as blog raw
+  material (not committed). Append an entry at the end of every working session:
+  date, Claude model used, what was built, decisions made, what was hard.
+- **`docs/adr/`** — the in-repo decision trail: for any decision that changes
+  structure, an interface, or a dependency, add a numbered ADR (context → decision
+  → consequences), cited from the commit message.
 - If a choice can't be justified in one paragraph, it isn't ready to commit.
