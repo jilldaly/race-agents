@@ -40,7 +40,7 @@ every diff — numbers are proven by reproduction, not by the model's say-so.
 
 | Tier | Golden (verdict) | Judge / trace (sensor) | Human gate |
 |---|---|---|---|
-| 01 stateless | golden-question eval (ported from racebot `eval/golden.py`) | — | review + merge |
+| 01 stateless | golden-question eval (deterministic, LLM-free) | — | review + merge |
 | 02 multistep | same golden numbers after pipeline rebuild | LLM-judge per node before proceeding | approval gate before gold report |
 | 03 learning | golden numbers + memory-retrieval correctness | judge: was the right past analysis recalled? | review |
 | 04 multi-agent | Data-Engineer silver must hit golden numbers | LLM-judge on every agent handoff | review of final report |
