@@ -155,3 +155,40 @@ docs/build-prompts.md, docs/four-agent-monorepo-plan.md, agents/01-stateless/REA
 JOURNAL.md.
 
 **Next:** Phase 1 — build agents/01-stateless.
+
+---
+
+## 2026-06-28 — Phase 1: silver builder + a finisher-counting rule
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Started Phase 1. Built the silver layer for agent 01 (`backend/silver.py`):
+parses the bronze result PDFs into a read-only SQLite db via
+`racedata.get_bronze_store()`. The bronze has **two layouts**, detected per-PDF
+from the header: 2026 (`Bib Pos. … Chip Gun`, with the 10k swapping to `Gun
+Chip`) and 2024/25 (`Rank … Time`, single time column, age-band codes). `time_sec`
+is chip (net) where available.
+
+**Decisions:**
+- **A finisher is a row with a complete result tail** (sex + age-group + time).
+  Placeholder rows the timing provider inserts without an age-group (e.g. "Contact
+  POPUPRACES" in the 10k) are therefore **not counted**. Net effect: 10k 2026 =
+  **3,396**, two fewer than the ancestor's published 3,398 — accepted as the clean
+  athlete count (Jill's call). We do *not* hard-filter on the name; the
+  complete-record rule is the definition.
+
+**Validated (2026, exact against the golden source):** full 2,102; half 4,309;
+full female median 4:18:24; full male median 3:53:29; half overall median 2:00:24.
+
+**Open data questions (next):**
+- **2024/25 counts are short** (e.g. full 1,835 vs golden 1,944) — the 2024/25
+  layout needs more parser work (10k times likely lack the hour field; possible
+  wrapped rows / age-band sub-headers).
+- **10k 2026 median, chip vs gun:** chip (net) gives 1:02:07; the ancestor's
+  published 1:04:11 was computed on *gun* time (a known inconsistency in the
+  source report). Decision needed: stay chip-consistent (and update the golden
+  number) or match the report's gun-based figure.
+
+**Next:** settle the two data questions, finish the 2024/25 parser, then tools +
+golden eval + agent loop + UI.

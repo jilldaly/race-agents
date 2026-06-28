@@ -15,8 +15,12 @@ debugging blind." We don't.)
   - Marathon 2026 — 2,102 finishers; fastest 2:22:42; median 3:57:09; female
     median 4:18:24.
   - Half 2026 — 4,309 finishers; median 2:00:24.
-  - 10K 2026 — 3,398 finishers; median 1:04:11.
-  - All races — 9,809 finishers (5,260 M / 4,549 F).
+  - 10K 2026 — 3,396 finishers; median 1:02:07 (chip/net). The ancestor's
+    published 3,398 / 1:04:11 counted 2 non-athlete placeholder rows and used gun
+    time for the 10k — both documented source inconsistencies we don't inherit.
+  - All races 2026 — 9,807 finishers (5,258 M / 4,549 F).
+  - Medians are floored to whole seconds (matches the report, e.g. marathon
+    overall 3:57:09).
 - This is the source of truth. Numbers must reproduce **exactly**. No LLM gets
   to override it.
 
