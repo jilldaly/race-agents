@@ -86,3 +86,42 @@ docs/architecture/Repo_1_The_Stateless_Tool_Caller.md (MCP wording),
 
 **Next:** Phase 1 — port racebot into agents/01-stateless (its golden eval lights
 up the CI gate).
+
+---
+
+## 2026-06-28 — Data plane per tier (ADR 0004)
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Settled the data-plane question for all four tiers and the access pattern, after
+weighing Postgres vs SQLite vs parquet against the O'Reilly stateless stack
+(which prescribes Postgres).
+
+**Key decisions (ADR 0004):**
+- **SQLite at 01 and 02; Postgres from 03.** 01's data is static, small,
+  read-only — a server DB is ceremony there (same reasoning as the MCP deferral,
+  ADR 0003). 03 needs pgvector, so Postgres debuts there and runs through 04.
+- **DB = store, not compute engine.** Tools `SELECT … WHERE …`; Python/pandas
+  computes the stats. Keeps the SQL surface tiny and near dialect-free, so the
+  SQLite→Postgres move is ~a connection-string change.
+- **One small per-agent repository function** (`backend/silver.py`) fronts all DB
+  access — no hand-written SQL scattered through tools, not shared across agents
+  (THE ONE RULE). stdlib `sqlite3`, no heavy ORM at 01/02.
+
+**Why SQLite won't hurt the 03/04 comparison:** dialect drift avoided by
+computing in Python; no vector search in SQLite is irrelevant (03 is pgvector by
+design); single-writer limit only matters for the write-heavy tiers, which use
+Postgres anyway. Accepted tradeoff: 02 ("production standard") with SQLite reads
+slightly less-production than Postgres — we favour minimalism.
+
+**Decision lineage worth noting for the blog:** 01's two right-sizing calls
+(function-calling not MCP; SQLite not Postgres) share one spine — *the reference
+stack is a general default; this data is static/small/read-only, so both are
+over-provisioned here, and each earns its keep at the exact later tier (MCP and
+Postgres+pgvector at 03/04).* That consistency is the portfolio's argument.
+
+**Files changed:** docs/adr/0004-data-plane-per-tier.md (new),
+docs/four-agent-monorepo-plan.md (parquet → SQLite), JOURNAL.md.
+
+**Next:** Phase 1 — port racebot into agents/01-stateless.
