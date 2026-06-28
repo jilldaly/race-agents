@@ -10,7 +10,7 @@ debugging blind." We don't.)
 **Axis 1 — Deterministic golden baseline = the verdict.**
 - LLM-free, network-free. A stub router scripts the tool calls; the *real* tool
   observations are asserted against numbers from the human-validated sample
-  report (`racebot/sample_report/cork_2026_report.pdf`).
+  report ([`cork-city-marathon-analysis`](https://github.com/jilldaly/cork-city-marathon-analysis/blob/main/report_charts/analog_devices_cork_marathon_analysis.pdf), the deterministic ancestor).
 - Anchored golden numbers from that report:
   - Marathon 2026 — 2,102 finishers; fastest 2:22:42; median 3:57:09; female
     median 4:18:24.
@@ -56,7 +56,7 @@ every diff — numbers are proven by reproduction, not by the model's say-so.
 
 ## The gold target
 
-The sample report (`racebot/sample_report/cork_2026_report.pdf`, 22 pp) is the
+The sample report ([`analog_devices_cork_marathon_analysis.pdf`](https://github.com/jilldaly/cork-city-marathon-analysis/blob/main/report_charts/analog_devices_cork_marathon_analysis.pdf), 22 pp) is the
 **example of the output the agents produce dynamically** — a cover + four
 sections (Overall Marathon 2026, Marathon Trend 2024–26, All Clubs Overall, All
 Clubs Trend), per-race stat tables, finish-time histograms, age-group and gender
