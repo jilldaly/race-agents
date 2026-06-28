@@ -1,6 +1,6 @@
 # race-agents
 
-One marathon dataset, used to compare the 4 essential AI architectures of the 2026 AI agents stack.
+One marathon dataset, 4 essential AI architectures of the 2026 AI agents stack.
 
 Each  AI architectures answers questions / builds reports about the Cork City Marathon, but
 each is built at a different rung of the stack — from a stateless fact-checker to
