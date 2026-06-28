@@ -35,18 +35,21 @@ _ROW_CHIPGUN = re.compile(
     r"(?P<t1>\d{1,2}:\d{2}:\d{2})\s+(?P<t2>\d{1,2}:\d{2}:\d{2})$"
 )
 # 2024/25 layout: "<rank>. <bib> <who> <sex_rank>. <sex> <ag> <time>".
-# NOTE: 2024/25 reconciliation is in progress — counts are still short of the
-# report's trend figures (sub-hour 10k times / wrapped rows to handle). 2026 is
-# the golden-eval gate; 2024/25 is the next increment (tracked in JOURNAL).
+# The age-group can be multi-word ("F Juvenile") and the single time may be
+# sub-hour MM:SS (10k) or H:MM:SS, so both groups are flexible.
 _ROW_TIME = re.compile(
     r"^(?P<rank>\d+)\.\s+(?P<bib>\d+)\s+(?P<who>.+?)\s+"
-    r"(?P<sex_rank>\d+)\.\s+(?P<sex>[MF])\s+(?P<ag>\S+)\s+"
-    r"(?P<time>\d{1,2}:\d{2}:\d{2})$"
+    r"(?P<sex_rank>\d+)\.\s+(?P<sex>[MF])\s+(?:(?P<ag>.+?)\s+)?"
+    r"(?P<time>\d{1,2}:\d{2}(?::\d{2})?)$"
 )
 
 
-def _to_sec(hms: str) -> int:
-    h, m, s = (int(x) for x in hms.split(":"))
+def _to_sec(t: str) -> int:
+    parts = [int(x) for x in t.split(":")]
+    if len(parts) == 2:  # MM:SS (sub-hour, e.g. 10k)
+        m, s = parts
+        return m * 60 + s
+    h, m, s = parts  # H:MM:SS
     return h * 3600 + m * 60 + s
 
 
@@ -121,7 +124,7 @@ def parse_pdf(fh, race: str, year: int) -> list[dict]:
                         "name": name,          # PII — never surfaced to the LLM
                         "club": club,
                         "sex": m["sex"],
-                        "age_group": m["ag"],
+                        "age_group": (m["ag"] or "").strip(),
                         "sex_rank": int(m["sex_rank"]),
                         "chip_sec": chip_sec,
                         "gun_sec": gun_sec,
@@ -153,7 +156,15 @@ def build_silver(db_path: Path = SILVER_DB) -> int:
             chip_sec INTEGER, gun_sec INTEGER, time_sec INTEGER
         )"""
     )
-    rows = list(_all_rows())
+    # One finisher per (race, year, bib): some 2024/25 PDFs list a runner in both
+    # an overall ranking and an age-group ranking. Keep the age-group-bearing row.
+    best: dict[tuple, dict] = {}
+    for r in _all_rows():
+        key = (r["race"], r["year"], r["bib"])
+        cur = best.get(key)
+        if cur is None or (not cur["age_group"] and r["age_group"]):
+            best[key] = r
+    rows = list(best.values())
     con.executemany(
         """INSERT INTO finishers VALUES
            (:race,:year,:bib,:pos,:name,:club,:sex,:age_group,:sex_rank,
