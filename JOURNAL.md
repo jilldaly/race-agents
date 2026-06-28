@@ -148,8 +148,7 @@ the same data the deterministic analysis already covers.
 - **README "Why four agents"** (minimal): a deterministic-ancestor nod + a
   user → need → tier table; infographic (made with NotebookLM) as the anchor.
 
-**Files changed (two PRs):** `docs/intent-and-lineage` — README.md,
-docs/eval-strategy.md. `docs/purge-racebot` — ADR 0002 (replaced with
+**Files changed:** README.md, docs/eval-strategy.md, ADR 0002 (replaced with
 golden-source-and-build-fresh), ADR 0001/0003 reworded, CLAUDE.md,
 docs/build-prompts.md, docs/four-agent-monorepo-plan.md, agents/01-stateless/README.md,
 JOURNAL.md.
@@ -192,3 +191,37 @@ full female median 4:18:24; full male median 3:53:29; half overall median 2:00:2
 
 **Next:** settle the two data questions, finish the 2024/25 parser, then tools +
 golden eval + agent loop + UI.
+
+---
+
+## 2026-06-28 — Phase 1 complete: agent 01 (stateless tool caller)
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Built agent 01 end-to-end on `feat/phase-1-stateless`. Stateless single-turn
+fact-checker: control plane routes to deterministic tools, numbers come from code.
+
+**What was built:**
+- **silver** — both bronze layouts parsed to read-only SQLite; full exact all
+  years, 2026 all races + medians exact.
+- **tools** — `compute_stat` / `get_club_stats` / `list_columns` with
+  function-calling schemas, arg guardrails, no PII; stats in Python.
+- **golden eval** — LLM-free, 11/11 pass; lights the CI `golden-eval` gate (now
+  real, since bronze is committed).
+- **control plane** — Think-Act-Observe loop (loop owns termination via
+  MAX_STEPS); router defaults to **Gemini free tier** (`gemini-2.0-flash`) via
+  the OpenAI-compatible endpoint; system prompt enforces numbers-from-tools,
+  param reporting, scope, no PII.
+- **UI / packaging** — Streamlit single-turn app (shows the tool trace),
+  pyproject, Dockerfile, README, `.env.example`; 7/7 unit tests via stub router.
+
+**Decisions applied:** chip-consistent 10k median (1:02:07); 2026 is the golden
+gate; placeholder rows excluded (finisher = complete record); bronze committed;
+default control plane = Gemini free tier (reconciled CLAUDE.md / plan / build-prompts).
+
+**Open / follow-ups:** 2024/25 half & 10k counts within ~0.3% of eyeballed trend
+figures (not authoritative); a few scruffy 2024/25 age-group labels; live Gemini
+run needs a key (loop verified via stub). 2026 — the gate — is exact.
+
+**Next:** open the Phase 1 PR; then live-test with a Gemini key; then Phase 2.

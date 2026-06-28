@@ -116,7 +116,7 @@ source URL, fetched-at, checksum) so provenance survives the move to scraping.
 
 | | Front end | Back end / framework | LLM transport | State store | New deps vs 01 |
 |---|---|---|---|---|---|
-| **01 stateless** | Streamlit, single-turn | raw `openai` SDK + function tools, `while` loop | OpenAI-compatible (Ollama local) | static silver **SQLite** (ADR 0004) | — |
+| **01 stateless** | Streamlit, single-turn | raw `openai` SDK + function tools, `while` loop | OpenAI-compatible (Gemini free tier) | static silver **SQLite** (ADR 0004) | — |
 | **02 multistep** | Streamlit + approval gate | **LangGraph** state machine, retry/parallel nodes | same | **SQLite** regenerated per run; trace logs | langgraph |
 | **03 learning** | dashboard | raw SDK + memory blocks + retrieval | same | **Postgres + pgvector** | pgvector, psycopg |
 | **04 multi-agent** | report UI / service | controller + 3 specialists, A2A handoffs | same | per-agent + shared blackboard | (orchestration) |

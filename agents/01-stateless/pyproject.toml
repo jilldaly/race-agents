@@ -1,0 +1,9 @@
+[project]
+name = "agent-01-stateless"
+version = "0.1.0"
+description = "Stateless tool-caller over Cork City Marathon results (race-agents tier 01)"
+requires-python = ">=3.11"
+dependencies = ["pdfplumber>=0.11", "openai>=1.40", "streamlit>=1.30"]
+
+[tool.setuptools]
+packages = ["backend", "eval"]
