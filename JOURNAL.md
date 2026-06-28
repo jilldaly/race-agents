@@ -225,3 +225,56 @@ figures (not authoritative); a few scruffy 2024/25 age-group labels; live Gemini
 run needs a key (loop verified via stub). 2026 — the gate — is exact.
 
 **Next:** open the Phase 1 PR; then live-test with a Gemini key; then Phase 2.
+
+---
+
+## 2026-06-28 — Reference: GitHub Actions workflows & YAML (how the CI gate works)
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+A primer captured for the blog, grounded in this repo's `.github/workflows/ci.yml`.
+
+**What GitHub Actions is.** GitHub's built-in automation. When something happens
+in the repo (a push, a pull request), GitHub spins up a fresh virtual machine,
+runs commands you defined, and reports a green ✓ or red ✗ back on the commit/PR.
+That's "CI" (continuous integration): every change is automatically built and
+tested, so problems surface on the PR instead of after merge.
+
+**What a workflow `.yml` is.** A workflow is one file under
+`.github/workflows/`. It's written in **YAML** — a plain-text config format where
+**indentation defines structure** (nesting = more spaces; tabs are illegal, which
+is the classic gotcha). The file is *declarative*: it describes *what* should run,
+and GitHub executes it. You don't run it yourself; pushing it to GitHub is what
+"installs" it.
+
+**The anatomy, mapped to our `ci.yml`:**
+- `name: ci` — the workflow's display name.
+- `on: [push, pull_request]` — the **triggers**: run on every push and every PR.
+- `jobs:` — independent units of work, each on its own fresh VM, run in parallel.
+  We have three: `racedata`, `golden-eval`, `agent-01-tests`.
+- Inside a job: `runs-on: ubuntu-latest` (which VM), then `steps:` run in order.
+- A step is either `uses:` — a prebuilt action someone else published, e.g.
+  `actions/checkout@v4` (clone our repo onto the VM) or `actions/setup-python@v5`
+  (install Python) — or `run:` — a shell command we write, e.g.
+  `pip install …` and `python -m eval.golden`.
+
+So `golden-eval` literally means: fresh Ubuntu box → check out the code → install
+Python → install deps → build silver from the committed bronze → run the golden
+eval. If the eval's `exit 1` fires (numbers drifted), the step fails, the job goes
+red, and the check reports failure on the PR.
+
+**Why committing the bronze mattered here.** The VM starts empty and has no access
+to your laptop. Anything the job needs must be *in the repo* (or fetched over the
+network). The golden eval needs the PDFs, so they had to be committed for the gate
+to run in CI — otherwise the job has nothing to build silver from.
+
+**Workflow ≠ gate.** A red ✗ is only *advisory* by default — GitHub still lets you
+merge. Making a check **block** merges is a *separate* setting: a branch
+**ruleset** (Settings → Rules) that marks the check as a **required status
+check**. The workflow produces the signal; the ruleset gives it teeth. That
+two-part split is why we had to both write `ci.yml` *and* add the ruleset. (A
+check only appears in the ruleset's picker after it has run at least once.)
+
+**Mental model:** the `.yml` is a recipe GitHub follows on a clean machine every
+time the repo changes; the ruleset decides which recipes must succeed before code
+can land.
