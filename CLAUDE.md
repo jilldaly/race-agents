@@ -55,7 +55,8 @@ the golden eval (`docs/eval-strategy.md`, ADR 0002). Next: Phase 1 builds it.
 
 ## Data layers
 - **bronze** `data/bronze/<race>/<year>/results_<distance>.pdf` (+ `meta.yaml`):
-  raw, immutable, shared, gitignored (large; bucket is canonical once hosted).
+  raw, immutable, shared, **committed** (4.3M — keeps the repo + CI self-contained
+  for the golden eval); the object-store bucket is the canonical source once hosted.
 - **silver / gold**: per-agent, regenerable, never committed.
 
 ## Commands

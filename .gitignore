@@ -5,10 +5,9 @@ __pycache__/
 .DS_Store
 .env
 
-# bronze raw data kept out of git (large; the object-store bucket is canonical once hosted)
-data/bronze/**
-!data/bronze/.gitkeep
-!data/bronze/README.md
+# bronze raw data is committed (4.3M — small enough to keep the repo + CI
+# self-contained so the golden eval can run); the object-store bucket remains the
+# canonical source once hosted. .DS_Store is ignored globally above.
 
 # silver/gold are per-agent and always regenerable
 **/silver/
