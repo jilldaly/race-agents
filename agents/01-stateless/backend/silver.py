@@ -176,6 +176,81 @@ def build_silver(db_path: Path = SILVER_DB) -> int:
     return len(rows)
 
 
+# --- repository: the only place that issues SQL (ADR 0004) ------------------
+# Tools call these; they never write SQL themselves. PII (name, bib) is never
+# returned. Statistics are computed in Python by the caller, not in SQL.
+
+def _connect(db_path: Path = SILVER_DB) -> sqlite3.Connection:
+    if not db_path.exists():
+        build_silver(db_path)
+    con = sqlite3.connect(db_path)
+    con.row_factory = sqlite3.Row
+    return con
+
+
+def query_times(
+    race: str,
+    year: int,
+    *,
+    sex: str | None = None,
+    age_group: str | None = None,
+    club: str | None = None,
+    db_path: Path = SILVER_DB,
+) -> list[int]:
+    """Chip times (seconds) for the filtered finishers — the read for time stats."""
+    sql = "SELECT time_sec FROM finishers WHERE race=? AND year=?"
+    args: list = [race, year]
+    for col, val in (("sex", sex), ("age_group", age_group), ("club", club)):
+        if val is not None:
+            sql += f" AND {col}=?"
+            args.append(val)
+    con = _connect(db_path)
+    try:
+        return [r["time_sec"] for r in con.execute(sql, args)]
+    finally:
+        con.close()
+
+
+def query_meta(db_path: Path = SILVER_DB) -> dict:
+    """Valid filter values (no PII) for list_columns / validation."""
+    con = _connect(db_path)
+    try:
+        col = lambda q: [r[0] for r in con.execute(q)]
+        return {
+            "races": col("SELECT DISTINCT race FROM finishers ORDER BY race"),
+            "years": col("SELECT DISTINCT year FROM finishers ORDER BY year"),
+            "sexes": ["M", "F"],
+            "age_groups": col(
+                "SELECT DISTINCT age_group FROM finishers WHERE age_group<>'' ORDER BY age_group"
+            ),
+            "n_clubs": con.execute(
+                "SELECT COUNT(DISTINCT club) FROM finishers WHERE club<>''"
+            ).fetchone()[0],
+        }
+    finally:
+        con.close()
+
+
+def query_club(
+    club_like: str, *, race: str | None = None, year: int | None = None,
+    db_path: Path = SILVER_DB,
+) -> list[dict]:
+    """Finisher records for clubs matching `club_like` (case-insensitive substring)."""
+    sql = "SELECT race, year, sex, age_group, club, time_sec FROM finishers WHERE club<>'' AND club LIKE ?"
+    args: list = [f"%{club_like}%"]
+    if race is not None:
+        sql += " AND race=?"
+        args.append(race)
+    if year is not None:
+        sql += " AND year=?"
+        args.append(year)
+    con = _connect(db_path)
+    try:
+        return [dict(r) for r in con.execute(sql, args)]
+    finally:
+        con.close()
+
+
 if __name__ == "__main__":
     n = build_silver()
     print(f"built {SILVER_DB} with {n} rows")
