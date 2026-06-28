@@ -33,6 +33,7 @@ The agents share **only** the bronze (raw) data layer, via the
 
 ## Quickstart
 ```bash
+brew install gh
 python -m venv .venv && source .venv/bin/activate
 make install
 make test
