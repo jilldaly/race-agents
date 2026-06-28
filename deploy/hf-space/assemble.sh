@@ -27,13 +27,13 @@ PY
 
 # 2. Copy the agent code (no bronze, venv, caches, output, .env, or full silver).
 rsync -a \
-  --exclude='.venv' --exclude='__pycache__' --exclude='*.pyc' \
+  --exclude='.venv' --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
   --exclude='output' --exclude='.env' \
   --exclude='data/bronze' --exclude='data/silver' \
   "$AGENT/" "$STAGE/agents/01-stateless/"
 
 # 3. Copy the only shared package.
-rsync -a --exclude='__pycache__' --exclude='*.pyc' \
+rsync -a --exclude='__pycache__' --exclude='*.pyc' --exclude='.DS_Store' \
   "$ROOT/packages/racedata/" "$STAGE/packages/racedata/"
 
 # 4. Space-root files (Dockerfile must be at the Space root for HF to build it).

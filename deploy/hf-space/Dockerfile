@@ -10,7 +10,9 @@ ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH \
     MPLCONFIGDIR=/tmp/matplotlib \
     STREAMLIT_SERVER_HEADLESS=true \
-    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    STREAMLIT_SERVER_ENABLE_CORS=false \
+    STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
 
 WORKDIR /app
 COPY --chown=user packages/racedata packages/racedata
@@ -22,5 +24,6 @@ USER user
 WORKDIR /app/agents/01-stateless
 RUN mkdir -p output
 
-EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+# Serve on HF's default port (7860) so routing works without relying on app_port.
+EXPOSE 7860
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=7860"]
