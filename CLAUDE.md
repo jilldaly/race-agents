@@ -49,13 +49,16 @@ the golden eval (`docs/eval-strategy.md`, ADR 0002). Next: Phase 1 builds it.
 - **Numbers from code, words from the model**: the LLM never does arithmetic and
   never invents a statistic; it narrates computed values.
 - **OpenAI-compatible transport everywhere**: a raw `openai` client pointed at
-  Ollama by default. Swapping to a hosted endpoint is a `base_url` + key change.
+  **Gemini (free tier)** by default, via Google's OpenAI-compatible endpoint.
+  Swapping provider (Gemini ↔ Ollama ↔ any hosted endpoint) is a `base_url` + key
+  change.
 - All config is env-overridable; model pricing is never hardcoded; default cost
-  is $0 (local Ollama).
+  is $0 (Gemini free tier).
 
 ## Data layers
 - **bronze** `data/bronze/<race>/<year>/results_<distance>.pdf` (+ `meta.yaml`):
-  raw, immutable, shared, gitignored (large; bucket is canonical once hosted).
+  raw, immutable, shared, **committed** (4.3M — keeps the repo + CI self-contained
+  for the golden eval); the object-store bucket is the canonical source once hosted.
 - **silver / gold**: per-agent, regenerable, never committed.
 
 ## Commands

@@ -148,10 +148,133 @@ the same data the deterministic analysis already covers.
 - **README "Why four agents"** (minimal): a deterministic-ancestor nod + a
   user → need → tier table; infographic (made with NotebookLM) as the anchor.
 
-**Files changed (two PRs):** `docs/intent-and-lineage` — README.md,
-docs/eval-strategy.md. `docs/purge-racebot` — ADR 0002 (replaced with
+**Files changed:** README.md, docs/eval-strategy.md, ADR 0002 (replaced with
 golden-source-and-build-fresh), ADR 0001/0003 reworded, CLAUDE.md,
 docs/build-prompts.md, docs/four-agent-monorepo-plan.md, agents/01-stateless/README.md,
 JOURNAL.md.
 
 **Next:** Phase 1 — build agents/01-stateless.
+
+---
+
+## 2026-06-28 — Phase 1: silver builder + a finisher-counting rule
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Started Phase 1. Built the silver layer for agent 01 (`backend/silver.py`):
+parses the bronze result PDFs into a read-only SQLite db via
+`racedata.get_bronze_store()`. The bronze has **two layouts**, detected per-PDF
+from the header: 2026 (`Bib Pos. … Chip Gun`, with the 10k swapping to `Gun
+Chip`) and 2024/25 (`Rank … Time`, single time column, age-band codes). `time_sec`
+is chip (net) where available.
+
+**Decisions:**
+- **A finisher is a row with a complete result tail** (sex + age-group + time).
+  Placeholder rows the timing provider inserts without an age-group (e.g. "Contact
+  POPUPRACES" in the 10k) are therefore **not counted**. Net effect: 10k 2026 =
+  **3,396**, two fewer than the ancestor's published 3,398 — accepted as the clean
+  athlete count (Jill's call). We do *not* hard-filter on the name; the
+  complete-record rule is the definition.
+
+**Validated (2026, exact against the golden source):** full 2,102; half 4,309;
+full female median 4:18:24; full male median 3:53:29; half overall median 2:00:24.
+
+**Open data questions (next):**
+- **2024/25 counts are short** (e.g. full 1,835 vs golden 1,944) — the 2024/25
+  layout needs more parser work (10k times likely lack the hour field; possible
+  wrapped rows / age-band sub-headers).
+- **10k 2026 median, chip vs gun:** chip (net) gives 1:02:07; the ancestor's
+  published 1:04:11 was computed on *gun* time (a known inconsistency in the
+  source report). Decision needed: stay chip-consistent (and update the golden
+  number) or match the report's gun-based figure.
+
+**Next:** settle the two data questions, finish the 2024/25 parser, then tools +
+golden eval + agent loop + UI.
+
+---
+
+## 2026-06-28 — Phase 1 complete: agent 01 (stateless tool caller)
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Built agent 01 end-to-end on `feat/phase-1-stateless`. Stateless single-turn
+fact-checker: control plane routes to deterministic tools, numbers come from code.
+
+**What was built:**
+- **silver** — both bronze layouts parsed to read-only SQLite; full exact all
+  years, 2026 all races + medians exact.
+- **tools** — `compute_stat` / `get_club_stats` / `list_columns` with
+  function-calling schemas, arg guardrails, no PII; stats in Python.
+- **golden eval** — LLM-free, 11/11 pass; lights the CI `golden-eval` gate (now
+  real, since bronze is committed).
+- **control plane** — Think-Act-Observe loop (loop owns termination via
+  MAX_STEPS); router defaults to **Gemini free tier** (`gemini-2.0-flash`) via
+  the OpenAI-compatible endpoint; system prompt enforces numbers-from-tools,
+  param reporting, scope, no PII.
+- **UI / packaging** — Streamlit single-turn app (shows the tool trace),
+  pyproject, Dockerfile, README, `.env.example`; 7/7 unit tests via stub router.
+
+**Decisions applied:** chip-consistent 10k median (1:02:07); 2026 is the golden
+gate; placeholder rows excluded (finisher = complete record); bronze committed;
+default control plane = Gemini free tier (reconciled CLAUDE.md / plan / build-prompts).
+
+**Open / follow-ups:** 2024/25 half & 10k counts within ~0.3% of eyeballed trend
+figures (not authoritative); a few scruffy 2024/25 age-group labels; live Gemini
+run needs a key (loop verified via stub). 2026 — the gate — is exact.
+
+**Next:** open the Phase 1 PR; then live-test with a Gemini key; then Phase 2.
+
+---
+
+## 2026-06-28 — Reference: GitHub Actions workflows & YAML (how the CI gate works)
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+A primer captured for the blog, grounded in this repo's `.github/workflows/ci.yml`.
+
+**What GitHub Actions is.** GitHub's built-in automation. When something happens
+in the repo (a push, a pull request), GitHub spins up a fresh virtual machine,
+runs commands you defined, and reports a green ✓ or red ✗ back on the commit/PR.
+That's "CI" (continuous integration): every change is automatically built and
+tested, so problems surface on the PR instead of after merge.
+
+**What a workflow `.yml` is.** A workflow is one file under
+`.github/workflows/`. It's written in **YAML** — a plain-text config format where
+**indentation defines structure** (nesting = more spaces; tabs are illegal, which
+is the classic gotcha). The file is *declarative*: it describes *what* should run,
+and GitHub executes it. You don't run it yourself; pushing it to GitHub is what
+"installs" it.
+
+**The anatomy, mapped to our `ci.yml`:**
+- `name: ci` — the workflow's display name.
+- `on: [push, pull_request]` — the **triggers**: run on every push and every PR.
+- `jobs:` — independent units of work, each on its own fresh VM, run in parallel.
+  We have three: `racedata`, `golden-eval`, `agent-01-tests`.
+- Inside a job: `runs-on: ubuntu-latest` (which VM), then `steps:` run in order.
+- A step is either `uses:` — a prebuilt action someone else published, e.g.
+  `actions/checkout@v4` (clone our repo onto the VM) or `actions/setup-python@v5`
+  (install Python) — or `run:` — a shell command we write, e.g.
+  `pip install …` and `python -m eval.golden`.
+
+So `golden-eval` literally means: fresh Ubuntu box → check out the code → install
+Python → install deps → build silver from the committed bronze → run the golden
+eval. If the eval's `exit 1` fires (numbers drifted), the step fails, the job goes
+red, and the check reports failure on the PR.
+
+**Why committing the bronze mattered here.** The VM starts empty and has no access
+to your laptop. Anything the job needs must be *in the repo* (or fetched over the
+network). The golden eval needs the PDFs, so they had to be committed for the gate
+to run in CI — otherwise the job has nothing to build silver from.
+
+**Workflow ≠ gate.** A red ✗ is only *advisory* by default — GitHub still lets you
+merge. Making a check **block** merges is a *separate* setting: a branch
+**ruleset** (Settings → Rules) that marks the check as a **required status
+check**. The workflow produces the signal; the ruleset gives it teeth. That
+two-part split is why we had to both write `ci.yml` *and* add the ruleset. (A
+check only appears in the ruleset's picker after it has run at least once.)
+
+**Mental model:** the `.yml` is a recipe GitHub follows on a clean machine every
+time the repo changes; the ruleset decides which recipes must succeed before code
+can land.

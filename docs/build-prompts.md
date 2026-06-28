@@ -24,7 +24,7 @@ and the per-tier ADRs. Don't port a prior implementation wholesale — this tier
 architecture is the point.
 
 - Single-turn, zero-memory Think-Act-Observe loop; OpenAI-compatible client
-  (Ollama default, Claude swappable via base_url).
+  (Gemini free tier default, swappable via base_url).
 - Raw function-calling tools (compute_stat, get_club_stats, list_columns) with the
   open, MCP-portable schema (ADR 0003). No MCP server at this tier.
 - Data plane: read-only static SQLite silver; all access behind one

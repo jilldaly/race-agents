@@ -30,3 +30,17 @@ jobs:
           else
             echo "agents/01-stateless/eval/golden.py not present yet — golden gate pending Phase 1."
           fi
+
+  agent-01-tests:
+    # Agent 01 unit tests (tool golden/guardrail/PII + loop control-flow via a
+    # stub router — no live LLM, no network). Runs from the agent dir so its
+    # backend/eval packages import.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e packages/racedata pytest
+      - run: pip install -r agents/01-stateless/requirements.txt
+      - run: cd agents/01-stateless && python -m pytest tests/ -q
