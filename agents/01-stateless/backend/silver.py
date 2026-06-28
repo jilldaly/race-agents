@@ -259,6 +259,31 @@ def query_club(
         con.close()
 
 
+def load_frame(db_path: Path = SILVER_DB) -> list[dict]:
+    """All finisher rows for charting (no PII) — callers build a DataFrame.
+
+    Returns race/year/sex/age_group/club/time_sec only; name and bib stay in the
+    db and are never surfaced. This is the repository read the chart tools use
+    instead of the report's own data loader (ADR 0004: SQL lives only here).
+    """
+    con = _connect(db_path)
+    try:
+        cols = "race, year, sex, age_group, club, time_sec"
+        return [dict(r) for r in con.execute(f"SELECT {cols} FROM finishers")]
+    finally:
+        con.close()
+
+
+def scrub_pii(db_path: Path = SILVER_DB) -> None:
+    """Remove personal data from a built silver db (GDPR): names and bibs are not
+    needed by any stat or chart, so blank them. Idempotent. Used to produce the
+    name-free artifact shipped to the public deploy."""
+    con = sqlite3.connect(db_path)
+    con.execute("UPDATE finishers SET name = '', bib = NULL")
+    con.commit()
+    con.close()
+
+
 if __name__ == "__main__":
     n = build_silver()
     print(f"built {SILVER_DB} with {n} rows")

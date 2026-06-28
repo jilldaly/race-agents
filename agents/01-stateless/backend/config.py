@@ -7,6 +7,17 @@ Cost defaults to $0 on the Gemini free tier.
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+# Load the agent's local .env (gitignored) so GEMINI_API_KEY and any overrides are
+# picked up without exporting them by hand. Optional dep — keyless tests/eval still
+# run if python-dotenv isn't installed.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except ModuleNotFoundError:
+    pass
 
 # Google's OpenAI-compatible endpoint for Gemini.
 BASE_URL = os.environ.get(
