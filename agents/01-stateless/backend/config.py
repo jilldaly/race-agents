@@ -23,7 +23,7 @@ except ModuleNotFoundError:
 BASE_URL = os.environ.get(
     "LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"
 )
-MODEL = os.environ.get("LLM_MODEL", "gemini-2.0-flash")
+MODEL = os.environ.get("LLM_MODEL", "gemini-2.5-flash")
 API_KEY = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY") or ""
 TEMPERATURE = float(os.environ.get("LLM_TEMPERATURE", "0"))
 MAX_STEPS = int(os.environ.get("AGENT_MAX_STEPS", "6"))
