@@ -7,7 +7,7 @@ that routes to deterministic Python tools. No framework, no vector DB, no
 cross-session memory — every question is a blank slate.
 
 **Stack:** Streamlit (single-turn) · OpenAI-compatible client → **Gemini free
-tier** (`gemini-2.0-flash`, swappable via `base_url`) · function-calling tools
+tier** (`gemini-2.5-flash`, swappable via `base_url`) · function-calling tools
 (ADR 0003) · read-only **SQLite** silver behind one `backend/silver.py`
 repository (ADR 0004) · `racedata` for bronze.
 
