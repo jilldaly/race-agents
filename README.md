@@ -7,6 +7,8 @@ each is built at a different rung of the stack — from a stateless fact-checker
 a four-specialist report synthesizer. The point is to show, on identical data,
 what each architecture buys you and what it costs.
 
+![Four agent types, four starting stacks — the 2026 AI agents stack applied to marathon data](docs/architecture/AI_Agents_Processing_Marathon_Data.png)
+
 | Agent | Persona | Architecture |
 |-------|---------|--------------|
 | [`agents/01-stateless`](agents/01-stateless)   | Journalist's Quick Fact-Checker    | stateless tool caller |
