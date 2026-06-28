@@ -11,9 +11,9 @@ GIT_SETUP.md
 # local-only build diary (private blog raw material; kept out of the repo)
 JOURNAL.md
 
-# bronze raw data is committed (4.3M — small enough to keep the repo + CI
-# self-contained so the golden eval can run); the object-store bucket remains the
-# canonical source once hosted. .DS_Store is ignored globally above.
+# bronze: the currently-committed Cork PDFs stay (CI's golden eval builds silver
+# from them). Don't auto-add NEW raw data to the repo — keep new bronze out of git.
+data/bronze/cork/
 
 # silver/gold are per-agent and always regenerable
 **/silver/
