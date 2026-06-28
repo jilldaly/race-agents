@@ -10,3 +10,23 @@ jobs:
           python-version: "3.11"
       - run: pip install -e packages/racedata pytest
       - run: pytest packages/racedata -q
+
+  golden-eval:
+    # Required gate: agent 01's numbers must reproduce the sample-report golden
+    # values (deterministic, no LLM, no network). See docs/eval-strategy.md.
+    # Runs once agents/01-stateless lands its eval; skips cleanly until then.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run agent 01 golden eval
+        run: |
+          if [ -f agents/01-stateless/eval/golden.py ]; then
+            pip install -e packages/racedata
+            pip install -r agents/01-stateless/requirements.txt
+            cd agents/01-stateless && python -m eval.golden
+          else
+            echo "agents/01-stateless/eval/golden.py not present yet — golden gate pending Phase 1."
+          fi

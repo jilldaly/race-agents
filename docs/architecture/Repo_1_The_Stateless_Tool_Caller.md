@@ -1,6 +1,6 @@
 Here is the architectural blueprint and the system prompt for **Repo 1: The Stateless Tool Caller**. 
 
-This repository will demonstrate the most fundamental AI agent tier: a lean, single-turn Q&A bot that processes user queries, calls a tool via the Model Context Protocol (MCP), and returns an answer without maintaining conversational memory or requiring a complex graph framework. 
+This repository will demonstrate the most fundamental AI agent tier: a lean, single-turn Q&A bot that processes user queries, calls a tool via raw function-calling (the open tool-call schema — MCP-portable, see `docs/adr/0003-tool-transport-per-tier.md`), and returns an answer without maintaining conversational memory or requiring a complex graph framework. 
 
 ### 1. Architectural Blueprint (`architecture_stateless.md`)
 
@@ -11,7 +11,7 @@ This repository demonstrates a **stateless tool caller** designed to answer poin
 *   **The "Think-Act-Observe" Loop:** The agent uses a minimal while-loop to reason about the Cork Marathon data, take an action (e.g., query the data), observe the result, and finish the task. 
 *   **Control/Data Plane Separation:** To prevent O(n^2) context window bloat and latency spikes, the LLM acts purely as the control plane. It does not read raw CSV or HTML files; instead, it generates parameters for Python tools (the data plane) which execute the heavy lifting and return compact JSON summaries.
 *   **Zero Memory Overhead:** The agent treats every query as a blank slate. It does not manage state across sessions, making it highly reliable for one-off analytical queries like checking the median half-marathon time.
-*   **Open Protocol Standard (MCP):** Tool connectivity is handled via the Model Context Protocol (MCP), ensuring the tools built for this stateless agent can be ported to more complex frameworks later without vendor lock-in.
+*   **Open tool schema (MCP-portable):** Tool connectivity uses raw function-calling with the open tool-call schema, not an MCP server — at one in-process agent MCP adds a transport for no reuse benefit (see `docs/adr/0003-tool-transport-per-tier.md`). The schemas are written MCP-portable, so tools can be promoted to an MCP server at tiers 03/04 without a rewrite.
 
 ***
 

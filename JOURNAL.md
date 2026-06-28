@@ -35,3 +35,54 @@ the apprenticeship note), docs/adr/0002-racebot-is-canonical-stateless-source.md
 (new), JOURNAL.md (new).
 
 **Next:** Phase 1 — port `racebot` into `agents/01-stateless`.
+
+---
+
+## 2026-06-28 — Tool transport, eval strategy, golden CI gate
+
+**Agent:** Claude (Opus 4.8) via Claude Code · **Human:** Jill Daly
+
+**Session summary:**
+Locked three architecture decisions and the trust story before agent 01 lands,
+and tied each to the source material so the blog has citations. Confirmed the
+sample report is the example of the dynamic output the agents produce.
+
+**Key decisions:**
+- **Tool transport per tier (ADR 0003).** The reference stack we demonstrate
+  (The AI Engineer "Pick Your Stack"; O'Reilly *AI Agents Stack 2026*) puts MCP
+  at 01/02. We deliberately defer it: 01/02 use raw function-calling with the
+  open, MCP-portable tool schema; MCP is introduced at 03/04 where a real
+  tool/resource boundary exists. Rationale: THE ONE RULE keeps tools per-agent
+  (no reuse for MCP to standardize), no external consumer yet, and 01 is the
+  "ship in days" minimal tier. Fixed the Repo_1 spec to stop claiming MCP.
+- **Eval strategy: golden = verdict, judges = sensors** (`docs/eval-strategy.md`).
+  The deterministic golden baseline (reproduces sample-report numbers, LLM-free)
+  is the merge gate; LLM-judge/trace evals are sensor data that can flag but
+  never bless. Maps to O'Reilly's three-tier eval cadence and *Agentic Code
+  Review*'s "AI review is sensor data, not verdicts."
+- **Golden eval wired as a required CI gate** (`.github/workflows/ci.yml`, job
+  `golden-eval`) — runs once agent 01 lands, pending until then. Action: mark
+  `golden-eval` as a required status check in branch protection.
+
+**Why this matters (green-field framing):** no users yet, so production
+monitoring and blast-radius tiering are deferred. The live application of
+agentic code review is *reflexive* — the loop is "Claude builds, Jill reviews +
+merges," so the golden gate is how trust is earned without reading every diff.
+
+**The gold target:** confirmed `racebot/sample_report/cork_2026_report.pdf`
+(22 pp) is the example of the dynamic output — four sections (Overall 2026,
+Marathon Trend 2024–26, All Clubs Overall, All Clubs Trend), per-race stat
+tables, finish-time histograms, age/gender trends, box plots. Golden numbers
+(Marathon 2,102 / female median 4:18:24; 9,809 total) are lifted from it.
+
+**References (blog raw material):**
+- O'Reilly — *Agentic Code Review*: https://www.oreilly.com/radar/agentic-code-review/
+- O'Reilly — *The AI Agents Stack (2026 edition)*: https://www.oreilly.com/radar/the-ai-agents-stack-2026-edition/
+
+**Files changed:** docs/adr/0003-tool-transport-per-tier.md (new),
+docs/eval-strategy.md (new),
+docs/architecture/Repo_1_The_Stateless_Tool_Caller.md (MCP wording),
+.github/workflows/ci.yml (golden gate), JOURNAL.md.
+
+**Next:** Phase 1 — port racebot into agents/01-stateless (its golden eval lights
+up the CI gate).
