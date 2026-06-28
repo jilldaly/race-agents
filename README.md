@@ -1,15 +1,15 @@
 # race-agents
 
-Four AI agents, one marathon dataset, four tiers of the 2026 AI agents stack.
+One marathon dataset, used to compare the 4 essential AI architectures of the 2026 AI agents stack.
 
-Each agent answers questions / builds reports about the Cork City Marathon, but
+Each  AI architectures answers questions / builds reports about the Cork City Marathon, but
 each is built at a different rung of the stack — from a stateless fact-checker to
 a four-specialist report synthesizer. The point is to show, on identical data,
 what each architecture buys you and what it costs.
 
-![Four agent types, four starting stacks — the 2026 AI agents stack applied to marathon data](docs/architecture/AI_Agents_Processing_Marathon_Data.png)
+![Four AI architecture types, four starting stacks — the 2026 AI agents stack applied to marathon data](docs/architecture/AI_Agents_Processing_Marathon_Data.png)
 
-## Why four agents
+## Why four  AI architectures
 
 The numbers already exist: [`cork-city-marathon-analysis`](https://github.com/jilldaly/cork-city-marathon-analysis)
 is the **deterministic ancestor** — a Python generator that turns official Cork
