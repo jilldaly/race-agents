@@ -15,6 +15,7 @@ POPUPRACES" entries in the 10k) are therefore not counted.
 """
 from __future__ import annotations
 
+import os
 import re
 import sqlite3
 from pathlib import Path
@@ -25,6 +26,13 @@ import pdfplumber
 from racedata import get_bronze_store
 
 SILVER_DB = Path(__file__).resolve().parent.parent / "data" / "silver" / "cork.db"
+
+# Default bronze location to the repo's committed PDFs so the agent works from any
+# cwd (e.g. CI runs `python -m eval.golden` from agents/01-stateless). Overridden
+# by BRONZE_ROOT / BRONZE_BACKEND for hosted object storage.
+os.environ.setdefault(
+    "BRONZE_ROOT", str(Path(__file__).resolve().parents[3] / "data" / "bronze")
+)
 
 # 2026 layout: "<bib> [pos] <who> <sex_rank>. <sex> <ag> <chip> <gun>".
 # Bib/pos are one token in the 10k (no space) and two elsewhere; we don't need
